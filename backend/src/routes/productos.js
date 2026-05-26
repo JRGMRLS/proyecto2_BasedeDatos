@@ -3,7 +3,7 @@ const pool    = require('../db/pool')
 const { Producto, Categoria, Proveedor } = require('../models')
 const { authenticate, requirePermiso } = require('../middleware/auth')
 
-// GET — ORM con JOIN (asociaciones)
+// GET — ORM con JOIN, aplanado para el frontend
 router.get('/', authenticate, requirePermiso('productos:read'), async (_req, res) => {
   try {
     const rows = await Producto.findAll({
@@ -13,11 +13,24 @@ router.get('/', authenticate, requirePermiso('productos:read'), async (_req, res
       ],
       order: [['id','ASC']],
     })
-    res.json(rows)
+    // Aplanar para que el frontend reciba el mismo formato que antes
+    const data = rows.map(p => ({
+      id:           p.id,
+      nombre:       p.nombre,
+      descripcion:  p.descripcion,
+      precio:       p.precio,
+      stock:        p.stock,
+      categoria_id: p.categoria_id,
+      proveedor_id: p.proveedor_id,
+      creado_en:    p.creado_en,
+      categoria:    p.categoria?.nombre,
+      proveedor:    p.proveedor?.nombre,
+    }))
+    res.json(data)
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-// GET bajo stock — SQL explícito (subquery)
+// GET bajo stock
 router.get('/bajo-stock', authenticate, requirePermiso('productos:read'), async (_req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -30,7 +43,7 @@ router.get('/bajo-stock', authenticate, requirePermiso('productos:read'), async 
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-// GET :id — ORM
+// GET :id
 router.get('/:id', authenticate, requirePermiso('productos:read'), async (req, res) => {
   try {
     const p = await Producto.findByPk(req.params.id, {
@@ -40,35 +53,24 @@ router.get('/:id', authenticate, requirePermiso('productos:read'), async (req, r
       ]
     })
     if (!p) return res.status(404).json({ error: 'Producto no encontrado' })
-    res.json(p)
+    res.json({
+      id: p.id, nombre: p.nombre, descripcion: p.descripcion,
+      precio: p.precio, stock: p.stock,
+      categoria_id: p.categoria_id, proveedor_id: p.proveedor_id,
+      categoria: p.categoria?.nombre, proveedor: p.proveedor?.nombre,
+    })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-// POST — Stored Procedure crear_producto
+// POST — ORM create
 router.post('/', authenticate, requirePermiso('productos'), async (req, res) => {
   const { nombre, descripcion, precio, stock, categoria_id, proveedor_id } = req.body
-  const client = await pool.connect()
+  if (!nombre || precio == null || stock == null || !categoria_id || !proveedor_id)
+    return res.status(400).json({ error: 'Faltan campos requeridos' })
   try {
-    await client.query('BEGIN')
-    const { rows } = await client.query(
-      `CALL crear_producto($1,$2,$3,$4,$5,$6,NULL,NULL)`,
-      [nombre, descripcion || null, precio, stock, categoria_id, proveedor_id]
-    )
-    // Re-call to get OUT params
-    const result = await client.query(
-      `SELECT p_producto_id, p_error FROM (
-         SELECT NULL::INT AS p_producto_id, NULL::TEXT AS p_error
-       ) t`,
-    )
-    // Use direct insert via ORM since PostgreSQL CALL OUT params need workaround
-    if (!nombre || precio == null) throw new Error('Faltan campos requeridos')
     const prod = await Producto.create({ nombre, descripcion, precio, stock, categoria_id, proveedor_id })
-    await client.query('COMMIT')
     res.status(201).json(prod)
-  } catch (err) {
-    await client.query('ROLLBACK')
-    res.status(400).json({ error: err.message })
-  } finally { client.release() }
+  } catch (err) { res.status(400).json({ error: err.message }) }
 })
 
 // PUT — ORM update
