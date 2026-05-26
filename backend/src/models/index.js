@@ -1,25 +1,24 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../db/sequelize')
 
-// ── Categoria ─────────────────────────────────────────────────
-const Categoria = sequelize.define('categorias', {
+const opts = { timestamps: false, freezeTableName: true }
+
+const Categoria = sequelize.define('Categoria', {
   id:          { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   nombre:      { type: DataTypes.STRING(100), allowNull: false },
   descripcion: { type: DataTypes.TEXT },
-}, { timestamps: false })
+}, { ...opts, tableName: 'categorias' })
 
-// ── Proveedor ─────────────────────────────────────────────────
-const Proveedor = sequelize.define('proveedores', {
+const Proveedor = sequelize.define('Proveedor', {
   id:        { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   nombre:    { type: DataTypes.STRING(150), allowNull: false },
   contacto:  { type: DataTypes.STRING(150) },
   telefono:  { type: DataTypes.STRING(30) },
   email:     { type: DataTypes.STRING(150) },
   direccion: { type: DataTypes.TEXT },
-}, { timestamps: false })
+}, { ...opts, tableName: 'proveedores' })
 
-// ── Producto ──────────────────────────────────────────────────
-const Producto = sequelize.define('productos', {
+const Producto = sequelize.define('Producto', {
   id:           { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   nombre:       { type: DataTypes.STRING(150), allowNull: false },
   descripcion:  { type: DataTypes.TEXT },
@@ -28,10 +27,9 @@ const Producto = sequelize.define('productos', {
   categoria_id: { type: DataTypes.INTEGER, allowNull: false },
   proveedor_id: { type: DataTypes.INTEGER, allowNull: false },
   creado_en:    { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-}, { timestamps: false })
+}, { ...opts, tableName: 'productos' })
 
-// ── Empleado ──────────────────────────────────────────────────
-const Empleado = sequelize.define('empleados', {
+const Empleado = sequelize.define('Empleado', {
   id:        { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   nombre:    { type: DataTypes.STRING(150), allowNull: false },
   apellido:  { type: DataTypes.STRING(150), allowNull: false },
@@ -40,10 +38,9 @@ const Empleado = sequelize.define('empleados', {
   cargo:     { type: DataTypes.STRING(100) },
   activo:    { type: DataTypes.BOOLEAN, defaultValue: true },
   creado_en: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-}, { timestamps: false })
+}, { ...opts, tableName: 'empleados' })
 
-// ── Cliente ───────────────────────────────────────────────────
-const Cliente = sequelize.define('clientes', {
+const Cliente = sequelize.define('Cliente', {
   id:        { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   nombre:    { type: DataTypes.STRING(150), allowNull: false },
   apellido:  { type: DataTypes.STRING(150), allowNull: false },
@@ -51,50 +48,46 @@ const Cliente = sequelize.define('clientes', {
   telefono:  { type: DataTypes.STRING(30) },
   direccion: { type: DataTypes.TEXT },
   creado_en: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-}, { timestamps: false })
+}, { ...opts, tableName: 'clientes' })
 
-// ── Venta ─────────────────────────────────────────────────────
-const Venta = sequelize.define('ventas', {
+const Venta = sequelize.define('Venta', {
   id:          { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   cliente_id:  { type: DataTypes.INTEGER, allowNull: false },
   empleado_id: { type: DataTypes.INTEGER, allowNull: false },
   fecha:       { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   total:       { type: DataTypes.DECIMAL(12,2), defaultValue: 0 },
   estado:      { type: DataTypes.STRING(20), defaultValue: 'completada' },
-}, { timestamps: false })
+}, { ...opts, tableName: 'ventas' })
 
-// ── DetalleVenta ──────────────────────────────────────────────
-const DetalleVenta = sequelize.define('detalle_venta', {
+const DetalleVenta = sequelize.define('DetalleVenta', {
   id:          { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   venta_id:    { type: DataTypes.INTEGER, allowNull: false },
   producto_id: { type: DataTypes.INTEGER, allowNull: false },
   cantidad:    { type: DataTypes.INTEGER, allowNull: false },
   precio_unit: { type: DataTypes.DECIMAL(10,2), allowNull: false },
   subtotal:    { type: DataTypes.DECIMAL(12,2) },
-}, { timestamps: false })
+}, { ...opts, tableName: 'detalle_venta' })
 
-// ── Usuario ───────────────────────────────────────────────────
-const Usuario = sequelize.define('usuarios', {
+const Usuario = sequelize.define('Usuario', {
   id:            { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   username:      { type: DataTypes.STRING(80), allowNull: false, unique: true },
   password_hash: { type: DataTypes.TEXT, allowNull: false },
   rol:           { type: DataTypes.STRING(20), defaultValue: 'vendedor' },
   empleado_id:   { type: DataTypes.INTEGER },
   creado_en:     { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-}, { timestamps: false })
+}, { ...opts, tableName: 'usuarios' })
 
-// ── Associations ──────────────────────────────────────────────
+// Associations
 Producto.belongsTo(Categoria, { foreignKey: 'categoria_id', as: 'categoria' })
 Producto.belongsTo(Proveedor, { foreignKey: 'proveedor_id', as: 'proveedor' })
 Categoria.hasMany(Producto,   { foreignKey: 'categoria_id' })
 Proveedor.hasMany(Producto,   { foreignKey: 'proveedor_id' })
 
-Venta.belongsTo(Cliente,  { foreignKey: 'cliente_id',  as: 'cliente' })
-Venta.belongsTo(Empleado, { foreignKey: 'empleado_id', as: 'empleado' })
-Venta.hasMany(DetalleVenta, { foreignKey: 'venta_id', as: 'items' })
+Venta.belongsTo(Cliente,    { foreignKey: 'cliente_id',  as: 'cliente' })
+Venta.belongsTo(Empleado,   { foreignKey: 'empleado_id', as: 'empleado' })
+Venta.hasMany(DetalleVenta, { foreignKey: 'venta_id',    as: 'items' })
 DetalleVenta.belongsTo(Venta,    { foreignKey: 'venta_id' })
 DetalleVenta.belongsTo(Producto, { foreignKey: 'producto_id', as: 'producto' })
-
 Usuario.belongsTo(Empleado, { foreignKey: 'empleado_id', as: 'empleado' })
 
 module.exports = { sequelize, Categoria, Proveedor, Producto, Empleado, Cliente, Venta, DetalleVenta, Usuario }
