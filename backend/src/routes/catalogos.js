@@ -2,8 +2,9 @@ const router = require('express').Router()
 const { Categoria, Proveedor, Empleado } = require('../models')
 const { authenticate, requirePermiso } = require('../middleware/auth')
 
-/* ── CATEGORÍAS ── ORM ─────────────────────────────── */
-router.get('/categorias', authenticate, requirePermiso('catalogos'), async (_req, res) => {
+/* ── CATEGORÍAS ─────────────────────────────────────────────── */
+// Lectura: todos los autenticados (necesario para dropdowns)
+router.get('/categorias', authenticate, async (_req, res) => {
   try { res.json(await Categoria.findAll({ order: [['nombre','ASC']] })) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
@@ -25,8 +26,9 @@ router.delete('/categorias/:id', authenticate, requirePermiso('catalogos'), asyn
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-/* ── PROVEEDORES ── ORM ────────────────────────────── */
-router.get('/proveedores', authenticate, requirePermiso('catalogos'), async (_req, res) => {
+/* ── PROVEEDORES ─────────────────────────────────────────────── */
+// Lectura: todos los autenticados
+router.get('/proveedores', authenticate, async (_req, res) => {
   try { res.json(await Proveedor.findAll({ order: [['nombre','ASC']] })) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })
@@ -48,8 +50,9 @@ router.delete('/proveedores/:id', authenticate, requirePermiso('catalogos'), asy
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-/* ── EMPLEADOS ── ORM ──────────────────────────────── */
-router.get('/empleados', authenticate, requirePermiso('ventas:read'), async (_req, res) => {
+/* ── EMPLEADOS ─────────────────────────────────────────────── */
+// Lectura: todos los autenticados (necesario para nueva venta)
+router.get('/empleados', authenticate, async (_req, res) => {
   try { res.json(await Empleado.findAll({ where:{ activo:true }, order:[['nombre','ASC']] })) }
   catch (err) { res.status(500).json({ error: err.message }) }
 })

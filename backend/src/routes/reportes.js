@@ -2,7 +2,7 @@ const router = require('express').Router()
 const pool   = require('../db/pool')
 const { authenticate, requirePermiso } = require('../middleware/auth')
 
-router.get('/ventas-por-empleado', authenticate, requirePermiso('reportes:read'), async (_req, res) => {
+router.get('/ventas-por-empleado', authenticate, authenticate, async (_req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT e.id, e.nombre||' '||e.apellido AS empleado, e.cargo,
@@ -15,21 +15,21 @@ router.get('/ventas-por-empleado', authenticate, requirePermiso('reportes:read')
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-router.get('/productos-top', authenticate, requirePermiso('reportes:read'), async (_req, res) => {
+router.get('/productos-top', authenticate, authenticate, async (_req, res) => {
   try {
     const { rows } = await pool.query(`SELECT * FROM v_productos_mas_vendidos ORDER BY total_vendido DESC LIMIT 10`)
     res.json(rows)
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-router.get('/inventario-categoria', authenticate, requirePermiso('reportes:read'), async (_req, res) => {
+router.get('/inventario-categoria', authenticate, authenticate, async (_req, res) => {
   try {
     const { rows } = await pool.query(`SELECT * FROM v_inventario_categoria ORDER BY valor_inventario DESC`)
     res.json(rows)
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-router.get('/ventas-diarias', authenticate, requirePermiso('reportes:read'), async (_req, res) => {
+router.get('/ventas-diarias', authenticate, authenticate, async (_req, res) => {
   try {
     const { rows } = await pool.query(`
       WITH dias AS (
@@ -46,7 +46,7 @@ router.get('/ventas-diarias', authenticate, requirePermiso('reportes:read'), asy
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
-router.get('/clientes-frecuentes', authenticate, requirePermiso('reportes:read'), async (_req, res) => {
+router.get('/clientes-frecuentes', authenticate, authenticate, async (_req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT c.id, c.nombre||' '||c.apellido AS cliente, c.email, c.telefono,
@@ -62,7 +62,7 @@ router.get('/clientes-frecuentes', authenticate, requirePermiso('reportes:read')
 })
 
 // Stored Procedure: reporte por periodo
-router.get('/periodo', authenticate, requirePermiso('reportes:read'), async (req, res) => {
+router.get('/periodo', authenticate, authenticate, async (req, res) => {
   const { desde, hasta } = req.query
   if (!desde || !hasta) return res.status(400).json({ error: 'Parámetros desde y hasta requeridos' })
   const client = await pool.connect()
@@ -80,7 +80,7 @@ router.get('/periodo', authenticate, requirePermiso('reportes:read'), async (req
   } finally { client.release() }
 })
 
-router.get('/dashboard', authenticate, requirePermiso('reportes:read'), async (_req, res) => {
+router.get('/dashboard', authenticate, async (_req, res) => {
   try {
     const [ventas, productos, clientes, stockBajo] = await Promise.all([
       pool.query(`SELECT COUNT(*) AS total, COALESCE(SUM(total),0) AS monto FROM ventas WHERE estado='completada'`),
