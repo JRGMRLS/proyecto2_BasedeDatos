@@ -102,12 +102,14 @@ INSERT INTO productos (nombre, descripcion, precio, stock, categoria_id, proveed
   ('Comida Perro 15kg',    'Royal Canin, adulto raza mediana',      380.00, 40, 10, 10),
   ('Arena Gato 5kg',       'Aglomerante, sin fragancia',             75.00, 55, 10, 10);
 
--- USUARIOS (admin + vendedores)
--- Passwords: admin123 y vendedor123 (bcrypt hash precomputado para demo)
+-- USUARIOS — 1 por cada rol (Proyecto 3)
 INSERT INTO usuarios (username, password_hash, rol, empleado_id) VALUES
-  ('admin',    '$2a$10$adBu2LgaKtrw09xOq0j9/OTNt31MmpDDqGlMbJE/3z76.B2EOzk5q', 'admin',    9),
-  ('vendedor1','$2a$10$5tO/FpveN7ZNjz/1AN.ZL.SAkf6RKEmJlN3URCR6BAB.lslXPzFVu', 'vendedor', 1),
-  ('vendedor2','$2a$10$vRY9LMy/QxyuWMFZgJWmP.0pN4Eh9ccqVURca/WUobs0cFia9MD9m', 'vendedor', 2);
+  ('admin',         '$2a$10$G.auk3qGpvVN8kveKBUM7OfKvmN8Q0eZojHi5dQlG/T2QVnMdCePu', 'gerente',      9),
+  ('gerente1',      '$2a$10$Pd6yQlxG1QbfHyCylXLdMeOMoupYikfbLuLoEkX19d/YFgnB0Gmrq', 'gerente',      9),
+  ('vendedor1',     '$2a$10$Is25l4tCfAEQhsQIpwfwi.xGONJKB2CW9DeLuJfGviRb3G.1jq9AC', 'vendedor',     1),
+  ('cajero1',       '$2a$10$vCWyZU6zlRxqOtrKPZ.SsOllN9Ql77nMEyR68HHI0cwgfne/q.XFq', 'cajero',       5),
+  ('inventarista1', '$2a$10$CJp5vtc10WbQE8ECOer5KuRMtBbN5SonfA03m6t7FvMolBziQ10se', 'inventarista', 7),
+  ('auditor1',      '$2a$10$qTrGpXeu/WE9FBH98GVnR.8Zd1MQX/oL6lbdnFlXxSSegUKtTdWXu', 'auditor',      NULL);
 
 -- VENTAS (30)
 INSERT INTO ventas (cliente_id, empleado_id, fecha, estado) VALUES

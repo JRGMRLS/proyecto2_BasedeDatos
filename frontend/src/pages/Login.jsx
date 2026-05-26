@@ -61,6 +61,10 @@ export default function Login() {
             {loading ? 'Ingresando…' : 'Ingresar'}
           </button>
         </form>
+
+        <p className="login-hint">
+          Demo: <strong>admin</strong> / <strong>admin123</strong>
+        </p>
       </div>
     </div>
   )

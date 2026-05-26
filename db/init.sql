@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     username     VARCHAR(80) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     rol          VARCHAR(20) NOT NULL DEFAULT 'vendedor'
-                     CHECK (rol IN ('admin','vendedor')),
+                     CHECK (rol IN ('gerente','vendedor','cajero','inventarista','auditor')),
     empleado_id  INT REFERENCES empleados(id),
     creado_en    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
